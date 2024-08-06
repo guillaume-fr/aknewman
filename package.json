@@ -1,0 +1,27 @@
+{
+  "name": "aknewman",
+  "version": "1.0.0",
+  "description": "newman with DNS spoof and EdgeGrid injection",
+  "homepage": "https://github.com/guillaume-fr/aknewman",
+  "bugs": "https://github.com/guillaume-fr/aknewman/issues",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/guillaume-fr/aknewman"
+  },
+  "main": "index.js",
+  "bin": {
+    "aknewman": "./index.js"
+  },
+  "scripts": {
+    "test": ""
+  },
+  "author": "Guillaume Moissaing",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "akamai-edgegrid": "^3.5.0",
+    "newman": "^6.1.3"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
