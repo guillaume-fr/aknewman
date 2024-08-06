@@ -16,7 +16,12 @@ for (const resolutionInstruction of forcedResolutions) {
 
 const edgeGridOptions = process.argv.filter(a => a.startsWith("--ak-edgegrid"));
 if (edgeGridOptions?.length) {
-    const edgeGridCredentials = new EdgeGrid({path: '~/.edgerc'}).config
+    let path, section;
+    if (edgeGridOptions[0].startsWith("--ak-edgegrid=")) {
+        const edgeGridConfig = edgeGridOptions[0].substring("--ak-edgegrid=".length);
+        [path, section] = edgeGridConfig.split(/:(.*)/);
+    }
+    const edgeGridCredentials = new EdgeGrid({path: path || "~/.edgerc", section}).config
     for (const key in edgeGridCredentials) {
         if (Object.hasOwnProperty.call(edgeGridCredentials, key)) {
             const value = edgeGridCredentials[key];
