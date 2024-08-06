@@ -3,6 +3,13 @@ newman launcher with DNS spoofing and edgegrid credentials injection.
 
 Not an "official" tool, no support provided, use at your own risks.
 
+## Installation
+
+You may use npx or install the tool globally, just like newman
+```
+npm install -g aknewman
+```
+
 ## Usage
 
 Extra parameters are prefixed with `--ak` you can use regular newman arguments for the rest.
