@@ -24,18 +24,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
  * 
  * 
- * Modified to handle NodeJS 20+
+ * Modified to handle NodeJS 20+ and resolve ak staging
  **/
-dns.lookup = function(domain, options, callback) {
+dns.lookup = function (domain, options, callback) {
 	var i;
 
 	if (arguments.length === 2) {
 		callback = options;
 		options = {};
-	} 
+	}
 
-    var family = (typeof(options) === 'object') ? options.family : options;
-    if (family) {
+	var family = (typeof (options) === 'object') ? options.family : options;
+	if (family) {
 		family = +family;
 		if (family !== 4 && family !== 6) {
 			throw new Error('invalid argument: `family` must be 4 or 6');
@@ -45,13 +45,30 @@ dns.lookup = function(domain, options, callback) {
 	for (i = 0; i < domains.length; i++) {
 		var entry = domains[i];
 		if (domain.match(entry.domain)) {
+			if (entry.staging) {
+				return dns.resolveCname(domain, (err, addresses) => {
+					if (err) {
+						return callback(err);
+					} else {
+						const akaProductionDomains = [".edgekey.net", ".edgesuite.net", ".akamai.net", ".akamaiedge.net"]
+						const edgeAddresses = addresses.filter(adr => akaProductionDomains.some(prdHost => adr.endsWith(prdHost)));
+						if (edgeAddresses.length > 0) {
+							const stagingAddress = edgeAddresses[0].replace(/\.net$/, "-staging.net");
+							return dnsLookup.call(this, stagingAddress, options, callback);
+						} else {
+							return dnsLookup.call(this, domain, options, callback);
+						}
+					}
+				});
+			}
+
 			if (!family || family === entry.family) {
 				if (options.all) {
-					return callback(null, [{address: entry.ip, family: entry.family}]);
+					return callback(null, [{ address: entry.ip, family: entry.family }]);
 				} else {
 					return callback(null, entry.ip, entry.family);
 				}
-			}			
+			}
 		}
 	}
 
@@ -68,7 +85,9 @@ dns.lookup = function(domain, options, callback) {
 function add(domain, ip) {
 	var entry = { ip: ip };
 
-	if (net.isIPv4(entry.ip)) {
+	if (entry.ip === "staging") {
+		entry.staging = true;
+	} else if (net.isIPv4(entry.ip)) {
 		entry.family = 4;
 	}
 	else if (net.isIPv6(entry.ip)) {
@@ -101,7 +120,7 @@ function remove(domain, ip) {
 
 	for (i = 0; i < domains.length; i++) {
 		if (domain instanceof RegExp) {
-			if (domains[i].source  instanceof RegExp
+			if (domains[i].source instanceof RegExp
 				&& domains[i].source.source === domain.source
 				&& (!ip || ip === domains[i].ip)) {
 
@@ -115,7 +134,7 @@ function remove(domain, ip) {
 				i--;
 			}
 		}
-		
+
 	}
 }
 
@@ -127,6 +146,10 @@ function clear() {
 }
 
 function createRegex(val) {
+	if (val === "") {
+		return /./;
+	}
+
 	var parts = val.split('*'),
 		i;
 
